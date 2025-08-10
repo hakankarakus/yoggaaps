@@ -35,6 +35,12 @@ struct PracticeView: View {
         case travel = "Seyahat"
     }
     
+    enum YogaLevel: String, CaseIterable {
+        case beginner = "Başlangıç"
+        case intermediate = "Orta"
+        case advanced = "İleri"
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {

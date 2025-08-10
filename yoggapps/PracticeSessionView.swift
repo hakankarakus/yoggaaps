@@ -20,7 +20,7 @@ struct PracticeSessionView: View {
         return session.poses[currentPoseIndex]
     }
     
-    private var nextPose: String {
+    private var nextPoseName: String {
         let nextIndex = currentPoseIndex + 1
         guard nextIndex < session.poses.count else { return "" }
         return session.poses[nextIndex]
@@ -116,7 +116,7 @@ struct PracticeSessionView: View {
             }
             .padding(.horizontal, 20)
             
-            ProgressView(value: progress)
+            SwiftUI.ProgressView(value: progress)
                 .progressViewStyle(LinearProgressViewStyle(tint: Color("PrimaryColor")))
                 .scaleEffect(x: 1, y: 2, anchor: .center)
                 .padding(.horizontal, 20)
@@ -128,11 +128,11 @@ struct PracticeSessionView: View {
     private var sessionInfoSection: some View {
         VStack(spacing: 12) {
             HStack {
-                Image(systemName: session.icon)
+                Image(systemName: "figure.yoga")
                     .font(.system(size: 32, weight: .medium))
-                    .foregroundColor(session.color)
+                    .foregroundColor(Color("PrimaryColor"))
                     .frame(width: 60, height: 60)
-                    .background(session.color.opacity(0.1))
+                    .background(Color("PrimaryColor").opacity(0.1))
                     .cornerRadius(30)
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -140,7 +140,7 @@ struct PracticeSessionView: View {
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(Color("TextPrimary"))
                     
-                    Text(session.location)
+                    Text(session.category.rawValue)
                         .font(.system(size: 16, weight: .medium, design: .rounded))
                         .foregroundColor(Color("TextSecondary"))
                 }
@@ -184,8 +184,8 @@ struct PracticeSessionView: View {
                 .font(.system(size: 16, weight: .medium, design: .rounded))
                 .foregroundColor(Color("TextSecondary"))
             
-            if !nextPose.isEmpty {
-                Text(nextPose)
+            if !nextPoseName.isEmpty {
+                Text(nextPoseName)
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
                     .foregroundColor(Color("TextPrimary"))
                     .multilineTextAlignment(.center)
@@ -274,13 +274,14 @@ struct PracticeSessionView: View {
 #Preview {
     PracticeSessionView(
         session: PracticeSession(
+            id: UUID(),
             title: "Hızlı Ofis Rahatlaması",
-            duration: 5,
-            location: "Ofis",
             description: "Toplantı arası hızlı rahatlama",
+            duration: 5,
+            category: .office,
+            level: .beginner,
             poses: ["Sandalye Esnemesi", "Boyun Döndürme", "Omuz Açma", "Nefes Çalışması"],
-            icon: "chair.fill",
-            color: Color("PrimaryColor")
+            isRecommended: true
         )
     )
 }

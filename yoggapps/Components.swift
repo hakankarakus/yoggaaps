@@ -563,7 +563,9 @@ struct QuickStatsCard: View {
             description: "Toplantı arası hızlı rahatlama"
         )
         
-        QuickActionButton(title: "Hemen Yoga Yap", icon: "play.circle.fill")
+        QuickActionButton(title: "Hemen Yoga Yap", icon: "play.circle.fill") {
+            // Preview action
+        }
         
         YogaTypeCard(
             title: "Chair Yoga",

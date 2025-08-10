@@ -568,53 +568,7 @@ struct SettingsView: View {
     }
 }
 
-struct NotificationSettingsView: View {
-    @Environment(\.presentationMode) var presentationMode
-    @State private var isDailyReminder = true
-    @State private var reminderTime = Date()
-    @State private var isWeeklyReport = true
-    @State private var isAchievementNotifications = true
-    
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Günlük Hatırlatıcı")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color("TextPrimary"))
-                        
-                        Toggle("Günlük Hatırlatıcı", isOn: $isDailyReminder)
-                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
-                        
-                        if isDailyReminder {
-                            DatePicker("Hatırlatma Zamanı", selection: $reminderTime, displayedComponents: .hourAndMinute)
-                                .datePickerStyle(CompactDatePickerStyle())
-                        }
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Diğer Bildirimler")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color("TextPrimary"))
-                        
-                        Toggle("Haftalık Rapor", isOn: $isWeeklyReport)
-                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
-                        Toggle("Başarı Bildirimleri", isOn: $isAchievementNotifications)
-                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
-                    }
-                }
-                .padding(20)
-            }
-            .background(Color("BackgroundColor"))
-            .navigationTitle("Bildirimler")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Kapat") {
-                presentationMode.wrappedValue.dismiss()
-            })
-        }
-    }
-}
+
 
 struct PrivacySettingsView: View {
     @Environment(\.presentationMode) var presentationMode

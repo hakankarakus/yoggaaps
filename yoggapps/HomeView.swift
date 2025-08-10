@@ -13,11 +13,13 @@ struct HomeView: View {
     @State private var selectedQuickAction: QuickActionType?
     @State private var showingMoodBased = false
     
-    enum QuickActionType {
+    enum QuickActionType: Identifiable {
         case startYoga
         case timeBased
         case locationBased
         case moodBased
+        
+        var id: Self { self }
     }
     
     var body: some View {
@@ -38,8 +40,16 @@ struct HomeView: View {
             .sheet(isPresented: $showingBreathingExercise) {
                 BreathingExerciseView()
             }
-            .sheet(item: $selectedQuickAction) { action in
-                handleQuickAction(action)
+            .sheet(isPresented: Binding(
+                get: { selectedQuickAction != nil },
+                set: { if !$0 { selectedQuickAction = nil } }
+            )) {
+                VStack {
+                    if let action = selectedQuickAction {
+                        Text("Seçilen: \(action)")
+                            .padding()
+                    }
+                }
             }
             .sheet(isPresented: $showingMoodBased) {
                 MoodBasedView()
@@ -213,9 +223,7 @@ struct HomeView: View {
     }
 }
 
-extension QuickActionType: Identifiable {
-    var id: Self { self }
-}
+
 
 #Preview {
     HomeView()

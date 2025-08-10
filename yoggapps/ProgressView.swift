@@ -165,8 +165,7 @@ struct ProgressView: View {
             
             ProgressChart(
                 data: [5, 3, 7, 4, 6, 8, 5],
-                labels: ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
-                target: 6
+                labels: ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
             )
             
             HStack {

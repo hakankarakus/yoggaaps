@@ -184,7 +184,7 @@ struct MoodBasedView: View {
         }
         .padding(.horizontal, 30)
         .padding(.top, 30)
-        .disabled(selectedMood == nil)
+        .disabled(false)
     }
 }
 
