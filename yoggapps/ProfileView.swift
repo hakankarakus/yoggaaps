@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var userName = "Yoga Dostu"
-    @State private var userEmail = "yoga@example.com"
     @State private var showingEditProfile = false
+    @State private var showingSettings = false
     @State private var showingNotifications = false
     @State private var showingPrivacy = false
+    @State private var showingHelp = false
     @State private var showingAbout = false
+    @State private var showingLogout = false
     
     var body: some View {
         NavigationView {
@@ -25,51 +26,84 @@ struct ProfileView: View {
                     // Quick Stats
                     quickStatsSection
                     
-                    // Settings
-                    settingsSection
+                    // Profile Actions
+                    profileActionsSection
                     
-                    // App Info
-                    appInfoSection
+                    // App Settings
+                    appSettingsSection
+                    
+                    // Support & Info
+                    supportSection
+                    
+                    // Account Actions
+                    accountActionsSection
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
             }
             .background(Color("BackgroundColor"))
-            .navigationTitle("Profil")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarHidden(true)
             .sheet(isPresented: $showingEditProfile) {
-                EditProfileView(userName: $userName, userEmail: $userEmail)
+                EditProfileView()
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
             }
             .sheet(isPresented: $showingNotifications) {
-                NotificationsSettingsView()
+                NotificationSettingsView()
             }
             .sheet(isPresented: $showingPrivacy) {
                 PrivacySettingsView()
             }
+            .sheet(isPresented: $showingHelp) {
+                HelpView()
+            }
             .sheet(isPresented: $showingAbout) {
                 AboutView()
+            }
+            .alert("Çıkış Yap", isPresented: $showingLogout) {
+                Button("İptal", role: .cancel) { }
+                Button("Çıkış Yap", role: .destructive) {
+                    // Handle logout
+                }
+            } message: {
+                Text("Hesabından çıkış yapmak istediğinden emin misin?")
             }
         }
     }
     
     private var profileHeaderSection: some View {
         VStack(spacing: 20) {
-            // Profile Image
+            // Profile Picture and Name
             VStack(spacing: 16) {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 80, weight: .medium))
-                    .foregroundColor(Color("PrimaryColor"))
-                    .frame(width: 100, height: 100)
-                    .background(Color("PrimaryColor").opacity(0.1))
-                    .cornerRadius(50)
+                Button(action: {
+                    showingEditProfile = true
+                }) {
+                    ZStack {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 80, weight: .light))
+                            .foregroundColor(Color("PrimaryColor"))
+                        
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(Color("PrimaryColor"))
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .offset(x: 25, y: 25)
+                    }
+                }
                 
                 VStack(spacing: 8) {
-                    Text(userName)
+                    Text("Hakan Karakuş")
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(Color("TextPrimary"))
                     
-                    Text(userEmail)
+                    Text("Yoga Öğrencisi")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(Color("TextSecondary"))
+                    
+                    Text("Üye olma: Ocak 2025")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundColor(Color("TextSecondary"))
                 }
             }
@@ -84,17 +118,16 @@ struct ProfileView: View {
                     Text("Profili Düzenle")
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color("PrimaryColor"))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(Color("PrimaryColor"))
+                .background(Color("PrimaryColor").opacity(0.1))
                 .cornerRadius(25)
             }
         }
         .padding(24)
         .background(Color("CardBackground"))
         .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
     }
     
     private var quickStatsSection: some View {
@@ -103,93 +136,201 @@ struct ProfileView: View {
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundColor(Color("TextPrimary"))
             
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
-                QuickStatCard(title: "Toplam Seans", value: "156", icon: "play.circle.fill")
-                QuickStatCard(title: "Toplam Süre", value: "18.5s", icon: "clock.fill")
-                QuickStatCard(title: "Başarı", value: "24", icon: "trophy.fill")
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 16) {
+                QuickStatCard(
+                    title: "Seans",
+                    value: "47",
+                    icon: "play.circle.fill",
+                    color: Color("PrimaryColor")
+                )
+                
+                QuickStatCard(
+                    title: "Saat",
+                    value: "23.5",
+                    icon: "clock.fill",
+                    color: Color("AccentColor")
+                )
+                
+                QuickStatCard(
+                    title: "Seri",
+                    value: "8",
+                    icon: "flame.fill",
+                    color: Color("TertiaryColor")
+                )
             }
         }
     }
     
-    private var settingsSection: some View {
+    private var profileActionsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Ayarlar")
+            Text("Profil")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundColor(Color("TextPrimary"))
             
-            VStack(spacing: 8) {
-                SettingsRow(
+            VStack(spacing: 12) {
+                ProfileActionRow(
+                    title: "Kişisel Bilgiler",
+                    subtitle: "Ad, e-posta, doğum tarihi",
+                    icon: "person.fill",
+                    color: Color("PrimaryColor")
+                ) {
+                    showingEditProfile = true
+                }
+                
+                ProfileActionRow(
+                    title: "Hedefler",
+                    subtitle: "Yoga hedeflerini yönet",
+                    icon: "target",
+                    color: Color("AccentColor")
+                ) {
+                    // Navigate to goals
+                }
+                
+                ProfileActionRow(
+                    title: "Favoriler",
+                    subtitle: "Kaydedilen seanslar ve pozlar",
+                    icon: "heart.fill",
+                    color: Color("TertiaryColor")
+                ) {
+                    // Navigate to favorites
+                }
+                
+                ProfileActionRow(
+                    title: "Geçmiş",
+                    subtitle: "Tamamlanan seanslar",
+                    icon: "clock.arrow.circlepath",
+                    color: Color("SecondaryColor")
+                ) {
+                    // Navigate to history
+                }
+            }
+        }
+    }
+    
+    private var appSettingsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Uygulama")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(Color("TextPrimary"))
+            
+            VStack(spacing: 12) {
+                ProfileActionRow(
                     title: "Bildirimler",
-                    subtitle: "Hatırlatıcılar ve güncellemeler",
-                    icon: "bell.fill"
+                    subtitle: "Hatırlatmalar ve bildirimler",
+                    icon: "bell.fill",
+                    color: Color("PrimaryColor")
                 ) {
                     showingNotifications = true
                 }
                 
-                SettingsRow(
+                ProfileActionRow(
                     title: "Gizlilik",
-                    subtitle: "Veri kullanımı ve güvenlik",
-                    icon: "lock.fill"
+                    subtitle: "Veri kullanımı ve gizlilik",
+                    icon: "lock.fill",
+                    color: Color("AccentColor")
                 ) {
                     showingPrivacy = true
                 }
                 
-                SettingsRow(
-                    title: "Hedefler",
-                    subtitle: "Günlük ve haftalık hedefler",
-                    icon: "target"
+                ProfileActionRow(
+                    title: "Genel Ayarlar",
+                    subtitle: "Tema, dil ve diğer ayarlar",
+                    icon: "gearshape.fill",
+                    color: Color("TertiaryColor")
                 ) {
-                    // Show goals settings
+                    showingSettings = true
                 }
                 
-                SettingsRow(
-                    title: "Tema",
-                    subtitle: "Açık/Koyu tema seçimi",
-                    icon: "paintbrush.fill"
+                ProfileActionRow(
+                    title: "Veri Senkronizasyonu",
+                    subtitle: "iCloud ve yedekleme",
+                    icon: "icloud.fill",
+                    color: Color("SecondaryColor")
                 ) {
-                    // Show theme settings
-                }
-                
-                SettingsRow(
-                    title: "Dil",
-                    subtitle: "Türkçe",
-                    icon: "globe"
-                ) {
-                    // Show language settings
+                    // Handle data sync
                 }
             }
         }
     }
     
-    private var appInfoSection: some View {
+    private var supportSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Uygulama Hakkında")
+            Text("Destek & Bilgi")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundColor(Color("TextPrimary"))
             
-            VStack(spacing: 8) {
-                SettingsRow(
+            VStack(spacing: 12) {
+                ProfileActionRow(
+                    title: "Yardım Merkezi",
+                    subtitle: "SSS ve kullanım kılavuzu",
+                    icon: "questionmark.circle.fill",
+                    color: Color("PrimaryColor")
+                ) {
+                    showingHelp = true
+                }
+                
+                ProfileActionRow(
                     title: "Hakkında",
-                    subtitle: "Versiyon 1.0.0",
-                    icon: "info.circle.fill"
+                    subtitle: "Uygulama versiyonu ve lisans",
+                    icon: "info.circle.fill",
+                    color: Color("AccentColor")
                 ) {
                     showingAbout = true
                 }
                 
-                SettingsRow(
-                    title: "Yardım & Destek",
-                    subtitle: "SSS ve iletişim",
-                    icon: "questionmark.circle.fill"
+                ProfileActionRow(
+                    title: "Geri Bildirim",
+                    subtitle: "Öneri ve hata bildirimi",
+                    icon: "envelope.fill",
+                    color: Color("TertiaryColor")
                 ) {
-                    // Show help
+                    // Handle feedback
                 }
                 
-                SettingsRow(
-                    title: "Geri Bildirim",
-                    subtitle: "Uygulamayı değerlendir",
-                    icon: "star.fill"
+                ProfileActionRow(
+                    title: "Değerlendir",
+                    subtitle: "App Store'da değerlendir",
+                    icon: "star.fill",
+                    color: Color("SecondaryColor")
                 ) {
-                    // Show feedback
+                    // Handle app store rating
+                }
+            }
+        }
+    }
+    
+    private var accountActionsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Hesap")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(Color("TextPrimary"))
+            
+            VStack(spacing: 12) {
+                ProfileActionRow(
+                    title: "Şifre Değiştir",
+                    subtitle: "Hesap güvenliği",
+                    icon: "key.fill",
+                    color: Color("PrimaryColor")
+                ) {
+                    // Handle password change
+                }
+                
+                ProfileActionRow(
+                    title: "Hesabı Sil",
+                    subtitle: "Kalıcı olarak hesabı kaldır",
+                    icon: "trash.fill",
+                    color: Color.red
+                ) {
+                    // Handle account deletion
+                }
+                
+                ProfileActionRow(
+                    title: "Çıkış Yap",
+                    subtitle: "Hesabından güvenli çıkış",
+                    icon: "rectangle.portrait.and.arrow.right",
+                    color: Color("TertiaryColor")
+                ) {
+                    showingLogout = true
                 }
             }
         }
@@ -200,14 +341,15 @@ struct QuickStatCard: View {
     let title: String
     let value: String
     let icon: String
+    let color: Color
     
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 24, weight: .medium))
-                .foregroundColor(Color("PrimaryColor"))
+                .foregroundColor(color)
                 .frame(width: 50, height: 50)
-                .background(Color("PrimaryColor").opacity(0.1))
+                .background(color.opacity(0.1))
                 .cornerRadius(25)
             
             VStack(spacing: 4) {
@@ -216,302 +358,380 @@ struct QuickStatCard: View {
                     .foregroundColor(Color("TextPrimary"))
                 
                 Text(title)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundColor(Color("TextSecondary"))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(16)
         .background(Color("CardBackground"))
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 }
 
-struct EditProfileView: View {
-    @Binding var userName: String
-    @Binding var userEmail: String
-    @Environment(\.dismiss) private var dismiss
-    
-    @State private var tempName: String = ""
-    @State private var tempEmail: String = ""
+struct ProfileActionRow: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 24) {
-                VStack(spacing: 20) {
-                    // Profile Image
-                    Image(systemName: "person.circle.fill")
-                        .font(.system(size: 80, weight: .medium))
-                        .foregroundColor(Color("PrimaryColor"))
-                        .frame(width: 100, height: 100)
-                        .background(Color("PrimaryColor").opacity(0.1))
-                        .cornerRadius(50)
+        Button(action: action) {
+            HStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(color)
+                    .frame(width: 40, height: 40)
+                    .background(color.opacity(0.1))
+                    .cornerRadius(20)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color("TextPrimary"))
                     
-                    // Form Fields
-                    VStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Ad Soyad")
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color("TextPrimary"))
-                            
-                            TextField("Adınızı girin", text: $tempName)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .font(.system(size: 16, weight: .medium, design: .rounded))
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("E-posta")
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color("TextPrimary"))
-                            
-                            TextField("E-posta adresinizi girin", text: $tempEmail)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .font(.system(size: 16, weight: .medium, design: .rounded))
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                        }
-                    }
+                    Text(subtitle)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(Color("TextSecondary"))
                 }
                 
                 Spacer()
                 
-                // Save Button
-                Button(action: {
-                    userName = tempName
-                    userEmail = tempEmail
-                    dismiss()
-                }) {
-                    Text("Kaydet")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color("PrimaryColor"))
-                        .cornerRadius(25)
-                }
-            }
-            .padding(24)
-            .background(Color("BackgroundColor"))
-            .navigationTitle("Profili Düzenle")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("İptal") {
-                        dismiss()
-                    }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(Color("TextSecondary"))
-                }
             }
-            .onAppear {
-                tempName = userName
-                tempEmail = userEmail
-            }
+            .padding(16)
+            .background(Color("CardBackground"))
+            .cornerRadius(16)
+            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         }
     }
 }
 
-struct NotificationsSettingsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var morningReminder = true
-    @State private var afternoonReminder = true
-    @State private var eveningReminder = false
-    @State private var weeklyProgress = true
+struct EditProfileView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var firstName = "Hakan"
+    @State private var lastName = "Karakuş"
+    @State private var email = "hakan@example.com"
+    @State private var birthDate = Date()
+    @State private var selectedGender = "Belirtmek İstemiyorum"
+    @State private var selectedLevel = "Başlangıç"
+    
+    let genderOptions = ["Belirtmek İstemiyorum", "Kadın", "Erkek", "Diğer"]
+    let levelOptions = ["Başlangıç", "Orta", "İleri"]
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
-                VStack(spacing: 16) {
-                    SettingsRow(
-                        title: "Sabah Hatırlatıcısı",
-                        subtitle: "Güne yoga ile başla",
-                        icon: "sunrise.fill"
-                    ) {
-                        morningReminder.toggle()
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Profile Picture
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 80, weight: .light))
+                            .foregroundColor(Color("PrimaryColor"))
+                        
+                        Button("Fotoğraf Değiştir") {
+                            // Handle photo change
+                        }
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(Color("PrimaryColor"))
                     }
-                    .overlay(
-                        Toggle("", isOn: $morningReminder)
-                            .labelsHidden()
-                    )
                     
-                    SettingsRow(
-                        title: "Öğle Hatırlatıcısı",
-                        subtitle: "Gün ortası rahatlama",
-                        icon: "clock.fill"
-                    ) {
-                        afternoonReminder.toggle()
+                    // Form Fields
+                    VStack(spacing: 20) {
+                        FormField(title: "Ad", text: $firstName)
+                        FormField(title: "Soyad", text: $lastName)
+                        FormField(title: "E-posta", text: $email)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Doğum Tarihi")
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundColor(Color("TextPrimary"))
+                            
+                            DatePicker("", selection: $birthDate, displayedComponents: .date)
+                                .datePickerStyle(CompactDatePickerStyle())
+                                .labelsHidden()
+                        }
+                        
+                        FormPicker(title: "Cinsiyet", selection: $selectedGender, options: genderOptions)
+                        FormPicker(title: "Yoga Seviyesi", selection: $selectedLevel, options: levelOptions)
                     }
-                    .overlay(
-                        Toggle("", isOn: $afternoonReminder)
-                            .labelsHidden()
-                    )
-                    
-                    SettingsRow(
-                        title: "Akşam Hatırlatıcısı",
-                        subtitle: "Uyku öncesi esneme",
-                        icon: "moon.fill"
-                    ) {
-                        eveningReminder.toggle()
-                    }
-                    .overlay(
-                        Toggle("", isOn: $eveningReminder)
-                            .labelsHidden()
-                    )
-                    
-                    SettingsRow(
-                        title: "Haftalık İlerleme",
-                        subtitle: "Haftalık özet raporu",
-                        icon: "chart.line.uptrend.xyaxis"
-                    ) {
-                        weeklyProgress.toggle()
-                    }
-                    .overlay(
-                        Toggle("", isOn: $weeklyProgress)
-                            .labelsHidden()
-                    )
                 }
-                
-                Spacer()
+                .padding(20)
             }
-            .padding(24)
+            .background(Color("BackgroundColor"))
+            .navigationTitle("Profili Düzenle")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(
+                leading: Button("İptal") {
+                    presentationMode.wrappedValue.dismiss()
+                },
+                trailing: Button("Kaydet") {
+                    // Save profile changes
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .fontWeight(.semibold)
+            )
+        }
+    }
+}
+
+struct FormField: View {
+    let title: String
+    @Binding var text: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundColor(Color("TextPrimary"))
+            
+            TextField(title, text: $text)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+        }
+    }
+}
+
+struct FormPicker: View {
+    let title: String
+    @Binding var selection: String
+    let options: [String]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundColor(Color("TextPrimary"))
+            
+            Picker(title, selection: $selection) {
+                ForEach(options, id: \.self) { option in
+                    Text(option).tag(option)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color("CardBackground"))
+            .cornerRadius(8)
+        }
+    }
+}
+
+struct SettingsView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isDarkMode = false
+    @State private var selectedLanguage = "Türkçe"
+    @State private var isHapticFeedback = true
+    @State private var isSoundEnabled = true
+    
+    let languageOptions = ["Türkçe", "English", "Deutsch", "Français"]
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Görünüm")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("TextPrimary"))
+                        
+                        Toggle("Karanlık Mod", isOn: $isDarkMode)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Genel")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("TextPrimary"))
+                        
+                        FormPicker(title: "Dil", selection: $selectedLanguage, options: languageOptions)
+                        Toggle("Dokunsal Geri Bildirim", isOn: $isHapticFeedback)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                        Toggle("Ses Efektleri", isOn: $isSoundEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                    }
+                }
+                .padding(20)
+            }
+            .background(Color("BackgroundColor"))
+            .navigationTitle("Ayarlar")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: Button("Kapat") {
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+    }
+}
+
+struct NotificationSettingsView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isDailyReminder = true
+    @State private var reminderTime = Date()
+    @State private var isWeeklyReport = true
+    @State private var isAchievementNotifications = true
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Günlük Hatırlatıcı")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("TextPrimary"))
+                        
+                        Toggle("Günlük Hatırlatıcı", isOn: $isDailyReminder)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                        
+                        if isDailyReminder {
+                            DatePicker("Hatırlatma Zamanı", selection: $reminderTime, displayedComponents: .hourAndMinute)
+                                .datePickerStyle(CompactDatePickerStyle())
+                        }
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Diğer Bildirimler")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("TextPrimary"))
+                        
+                        Toggle("Haftalık Rapor", isOn: $isWeeklyReport)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                        Toggle("Başarı Bildirimleri", isOn: $isAchievementNotifications)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                    }
+                }
+                .padding(20)
+            }
             .background(Color("BackgroundColor"))
             .navigationTitle("Bildirimler")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Tamam") {
-                        dismiss()
-                    }
-                    .foregroundColor(Color("PrimaryColor"))
-                }
-            }
+            .navigationBarItems(trailing: Button("Kapat") {
+                presentationMode.wrappedValue.dismiss()
+            })
         }
     }
 }
 
 struct PrivacySettingsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var dataCollection = true
-    @State private var analytics = true
-    @State private var personalizedContent = true
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isDataCollection = true
+    @State private var isAnalytics = false
+    @State private var isCrashReports = true
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
-                VStack(spacing: 16) {
-                    SettingsRow(
-                        title: "Veri Toplama",
-                        subtitle: "Kullanım verilerini topla",
-                        icon: "chart.bar.fill"
-                    ) {
-                        dataCollection.toggle()
+            ScrollView {
+                VStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Veri Kullanımı")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("TextPrimary"))
+                        
+                        Toggle("Veri Toplama", isOn: $isDataCollection)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                        Toggle("Analitik", isOn: $isAnalytics)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
+                        Toggle("Çökme Raporları", isOn: $isCrashReports)
+                            .toggleStyle(SwitchToggleStyle(tint: Color("PrimaryColor")))
                     }
-                    .overlay(
-                        Toggle("", isOn: $dataCollection)
-                            .labelsHidden()
-                    )
                     
-                    SettingsRow(
-                        title: "Analitik",
-                        subtitle: "Uygulama performansı",
-                        icon: "chart.line.uptrend.xyaxis"
-                    ) {
-                        analytics.toggle()
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Gizlilik Politikası")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(Color("TextPrimary"))
+                        
+                        Text("Verileriniz nasıl toplandığı ve kullanıldığı hakkında detaylı bilgi için gizlilik politikamızı okuyabilirsiniz.")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(Color("TextSecondary"))
                     }
-                    .overlay(
-                        Toggle("", isOn: $analytics)
-                            .labelsHidden()
-                    )
-                    
-                    SettingsRow(
-                        title: "Kişiselleştirilmiş İçerik",
-                        subtitle: "Hedeflerine göre öneriler",
-                        icon: "person.fill"
-                    ) {
-                        personalizedContent.toggle()
-                    }
-                    .overlay(
-                        Toggle("", isOn: $personalizedContent)
-                            .labelsHidden()
-                    )
                 }
-                
-                Spacer()
+                .padding(20)
             }
-            .padding(24)
             .background(Color("BackgroundColor"))
             .navigationTitle("Gizlilik")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Tamam") {
-                        dismiss()
-                    }
-                    .foregroundColor(Color("PrimaryColor"))
+            .navigationBarItems(trailing: Button("Kapat") {
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+    }
+}
+
+struct HelpView: View {
+    @Environment(\.presentationMode) var presentationMode
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    Text("Yardım Merkezi")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(Color("TextPrimary"))
+                    
+                    Text("Bu sayfa geliştirilme aşamasında...")
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(Color("TextSecondary"))
                 }
+                .padding(20)
             }
+            .background(Color("BackgroundColor"))
+            .navigationTitle("Yardım")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: Button("Kapat") {
+                presentationMode.wrappedValue.dismiss()
+            })
         }
     }
 }
 
 struct AboutView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 30) {
-                // App Icon
-                Image(systemName: "figure.mind.and.body")
-                    .font(.system(size: 80, weight: .medium))
-                    .foregroundColor(Color("PrimaryColor"))
-                    .frame(width: 120, height: 120)
-                    .background(Color("PrimaryColor").opacity(0.1))
-                    .cornerRadius(60)
-                
-                VStack(spacing: 16) {
-                    Text("YoggApps")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundColor(Color("TextPrimary"))
+            ScrollView {
+                VStack(spacing: 24) {
+                    Image(systemName: "leaf.fill")
+                        .font(.system(size: 80, weight: .light))
+                        .foregroundColor(Color("PrimaryColor"))
                     
-                    Text("Modern Yoga Uygulaması")
-                        .font(.system(size: 18, weight: .medium, design: .rounded))
-                        .foregroundColor(Color("TextSecondary"))
+                    VStack(spacing: 16) {
+                        Text("YoggApps")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(Color("TextPrimary"))
+                        
+                        Text("Versiyon 1.0.0")
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .foregroundColor(Color("TextSecondary"))
+                        
+                        Text("Yoga ve mindfulness için geliştirilmiş kişisel uygulama")
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .foregroundColor(Color("TextSecondary"))
+                            .multilineTextAlignment(.center)
+                    }
                     
-                    Text("Versiyon 1.0.0")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color("TextSecondary"))
+                    VStack(spacing: 12) {
+                        Text("© 2025 YoggApps. Tüm hakları saklıdır.")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(Color("TextSecondary"))
+                        
+                        Text("Geliştirici: Hakan Karakuş")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(Color("TextSecondary"))
+                    }
                 }
-                
-                VStack(spacing: 12) {
-                    Text("Bu uygulama, yoğun iş hayatında olan kişiler için özel olarak tasarlanmıştır.")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color("TextSecondary"))
-                        .multilineTextAlignment(.center)
-                        .lineLimit(4)
-                    
-                    Text("Kısa süreli, her ortamda yapılabilir yoga türleri ile günlük yaşamınıza huzur katın.")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color("TextSecondary"))
-                        .multilineTextAlignment(.center)
-                        .lineLimit(4)
-                }
-                
-                Spacer()
+                .padding(20)
             }
-            .padding(30)
             .background(Color("BackgroundColor"))
             .navigationTitle("Hakkında")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Kapat") {
-                        dismiss()
-                    }
-                    .foregroundColor(Color("TextSecondary"))
-                }
-            }
+            .navigationBarItems(trailing: Button("Kapat") {
+                presentationMode.wrappedValue.dismiss()
+            })
         }
     }
 }
